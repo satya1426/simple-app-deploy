@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: sans-serif; background: #f0f2f5;
+      display: flex; justify-content: center; align-items: center; min-height: 100vh;
+    }
+    .card {
+      background: white; padding: 40px 32px; border-radius: 10px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1); width: 100%; max-width: 380px;
+    }
+    h1 { font-size: 1.5rem; color: #333; margin-bottom: 24px; text-align: center; }
+    label { display: block; font-size: 0.85rem; color: #555; margin-bottom: 4px; }
+    input {
+      width: 100%; padding: 10px 12px; border: 1px solid #ddd;
+      border-radius: 6px; font-size: 1rem; margin-bottom: 16px;
+    }
+    input:focus { outline: none; border-color: #4a90e2; }
+    button {
+      width: 100%; padding: 11px; background: #4a90e2; color: white;
+      border: none; border-radius: 6px; font-size: 1rem; cursor: pointer;
+    }
+    button:hover { background: #357abd; }
+    .error {
+      background: #fdecea; color: #c0392b; padding: 10px 12px;
+      border-radius: 6px; font-size: 0.9rem; margin-bottom: 16px; text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Sign In</h1>
+    <div id="error-msg" class="error" style="display:none">Invalid username or password</div>
+    <form method="POST" action="/login">
+
+      <label for="username">Username</label>
+      <input type="text" id="username" name="username" placeholder="admin" required autocomplete="username" />
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" placeholder="••••••••" required autocomplete="current-password" />
+      <button type="submit">Login</button>
+    </form>
+    <p style="text-align:center; margin-top:16px; font-size:0.9rem; color:#555;">
+      Don't have an account? <a href="/signup" style="color:#4a90e2; text-decoration:none;">Sign up</a>
+    </p>
+  </div>
+  <script>
+    // Show error if ?error=1 in URL
+    if (new URLSearchParams(location.search).get('error')) {
+      document.getElementById('error-msg').style.display = 'block';
+    }
+  </script>
+</body>
+</html>
