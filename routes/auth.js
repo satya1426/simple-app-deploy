@@ -47,11 +47,13 @@ router.post('/signup', async (req, res) => {
   }
 
   const hash = await bcrypt.hash(password, 10);
-  const user = { id: nextId++, username: username.trim(), password: hash };
+  const user = { id: nextId++, username: username.trim(), password: hash, joinedAt: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) };
   users.push(user);
 
   req.session.userId = user.id;
   req.session.username = user.username;
+  req.session.joinedAt = user.joinedAt;
+  req.session.joinedAt = user.joinedAt;
   res.redirect('/dashboard');
 });
 
