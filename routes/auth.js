@@ -1,11 +1,8 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const path = require('path');
+const User = require('../models/User');
 const router = express.Router();
-
-// In-memory user store — swap with MongoDB if needed
-const users = [];
-let nextId = 1;
 
 router.get('/', (req, res) => res.redirect('/login'));
 
@@ -17,15 +14,25 @@ router.get('/login', (req, res) => {
 
 router.post('/login', async (req, res) => {
   const { username, password } = req.body;
-  const user = users.find(u => u.username === username);
+  try {
+    const user = await User.findOne({ username });
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      return res.redirect('/login?error=1');
+    }
 
-  if (!user || !(await bcrypt.compare(password, user.password))) {
-    return res.redirect('/login?error=1');
+    // Increment login count in DB
+    user.loginCount += 1;
+    await user.save();
+
+    req.session.userId = user._id;
+    req.session.username = user.username;
+    req.session.joinedAt = user.joinedAt.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    req.session.loginCount = user.loginCount;
+    res.redirect('/dashboard');
+  } catch (err) {
+    console.error(err);
+    res.redirect('/login?error=1');
   }
-
-  req.session.userId = user.id;
-  req.session.username = user.username;
-  res.redirect('/dashboard');
 });
 
 // --- Signup ---
@@ -41,20 +48,22 @@ router.post('/signup', async (req, res) => {
     return res.redirect('/signup?error=invalid');
   }
 
-  const exists = users.find(u => u.username === username.trim());
-  if (exists) {
-    return res.redirect('/signup?error=taken');
+  try {
+    const exists = await User.findOne({ username: username.trim() });
+    if (exists) return res.redirect('/signup?error=taken');
+
+    const hash = await bcrypt.hash(password, 10);
+    const user = await User.create({ username: username.trim(), password: hash, loginCount: 1 });
+
+    req.session.userId = user._id;
+    req.session.username = user.username;
+    req.session.joinedAt = user.joinedAt.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    req.session.loginCount = user.loginCount;
+    res.redirect('/dashboard');
+  } catch (err) {
+    console.error(err);
+    res.redirect('/signup?error=invalid');
   }
-
-  const hash = await bcrypt.hash(password, 10);
-  const user = { id: nextId++, username: username.trim(), password: hash, joinedAt: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) };
-  users.push(user);
-
-  req.session.userId = user.id;
-  req.session.username = user.username;
-  req.session.joinedAt = user.joinedAt;
-  req.session.joinedAt = user.joinedAt;
-  res.redirect('/dashboard');
 });
 
 // --- Logout ---

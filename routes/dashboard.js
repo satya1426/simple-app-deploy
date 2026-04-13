@@ -230,11 +230,8 @@ router.get('/dashboard', requireAuth, (req, res) => {
     document.getElementById('now-time').textContent = 'Today at ' + now;
     document.getElementById('now-time2').textContent = 'Today at ' + now;
 
-    // Login count from localStorage
-    const key = 'login_count_${username}';
-    let count = parseInt(localStorage.getItem(key) || '0') + 1;
-    localStorage.setItem(key, count);
-    document.getElementById('login-count').textContent = count;
+    // Login count from DB via session
+    document.getElementById('login-count').textContent = ${req.session.loginCount || 1};
 
     // Browser info
     const ua = navigator.userAgent;

@@ -1,18 +1,25 @@
-# Use official Node.js LTS image
-FROM node:20-alpine
-
-# Set working directory
+# ---- Build stage ----
+FROM node:20-alpine AS builder
 WORKDIR /app
-
-# Copy package files and install dependencies
 COPY package*.json ./
 RUN npm ci --omit=dev
 
-# Copy the rest of the source code
+# ---- Production stage ----
+FROM node:20-alpine
+WORKDIR /app
+
+# Add non-root user for security
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+
+COPY --from=builder /app/node_modules ./node_modules
 COPY . .
 
-# Expose the app port
+# Remove .env from image — use environment variables at runtime
+RUN rm -f .env
+
+RUN chown -R appuser:appgroup /app
+USER appuser
+
 EXPOSE 3000
 
-# Start the app
 CMD ["node", "server.js"]
